@@ -80,27 +80,31 @@ const usePageData = (
 
   const saveTemplate = () => {
     return Promise.all(
-      updatingData.map(([device, lightMode]) =>
+      updatingData.map(([device, lightMode]) => {
+        const payload = device === DESKTOP
+        ? exportHtml(
+            state[device].light.data,
+            desktopStyles,
+            selectedGoogleFonts
+          )
+        : exportHtml(
+            state[device].light.data,
+            mobileStyles,
+            selectedGoogleFonts
+          );
+
+        const myWindow = window.open("", "", "");
+        myWindow.document.write(payload);
         sendRequest(
           `/sites/${site_id}/placements/${placement}/${device}/html?token=${token}${
             lightMode === DARK ? '&color_scheme=dark' : ''
           }`,
           {
             method: 'POST',
-            payload:
-              device === DESKTOP
-                ? exportHtml(
-                    state[device].light.data,
-                    desktopStyles,
-                    selectedGoogleFonts
-                  )
-                : exportHtml(
-                    state[device].light.data,
-                    mobileStyles,
-                    selectedGoogleFonts
-                  )
+            payload
+              
           }
-        )
+        )}
       )
     );
   };
