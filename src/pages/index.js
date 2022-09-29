@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useMemo, useState } from 'react';
-import { template, mergeWith, isEqual } from 'lodash';
+import { mergeWith, isEqual } from 'lodash';
 import { useToasts } from 'react-toast-notifications';
 import ReactSelect from 'react-select';
 import { sendRequest, getEnabledDarkMode } from '../services';
@@ -8,10 +8,6 @@ import { FontDataContext } from '../hooks/fontDataContext';
 import usePageQuery from '../hooks/pageQuery';
 import PositionOptions from '../components/editors/SponsorshipLabel/position.options.json';
 import {
-  AD_TITLE,
-  AD_BODY,
-  AD_CTA,
-  AD_SPONSORED,
   DEFAULT_CUSTOM_CSS,
   DEFAULT_DESKTOP_SETTINGS,
   DEFAULT_MOBILE_SETTINGS,
@@ -23,8 +19,6 @@ import {
   MOBILE,
   DARK,
   LIGHT,
-  exportCss,
-  getGoogleFontsStyleSheet,
   CUSTOM_REACT_SELECT_STYLES
 } from '../utils';
 import {
@@ -43,8 +37,6 @@ import CustomCSS from '../components/editors/CustomCSS';
 import FontDesign from '../components/editors/FontDesign';
 import ImageDesign from '../components/editors/ImageDesign';
 import Footer from '../components/app/Footer';
-import { getContainerRenderer } from '../components/containers';
-import weblayout from '../components/containers/html';
 import ErrorLayout from '../layouts/ErrorLayout';
 import LayoutWithNav from '../layouts/LayoutWithNav';
 import LoadingLayout from '../layouts/LoadingLayout';
@@ -56,9 +48,8 @@ import { LightDarkMode } from '../components/app/LightDarkMode';
 import Switch from 'react-switch';
 import Device from '../components/app/Device';
 import LockedInfoLayout from '../layouts/LockedInfoLayout/LockedInfoLayout';
-import useSetStyles from '../hooks/useSetStyles';
-import * as ReactToCss from 'react-style-object-to-css';
 import { ratio } from 'wcag-color';
+import usePageData from '../hooks/usePageData';
 
 export default function DesignTemplate() {
   const [isMobile, setIsMobile] = useState(false);
@@ -74,8 +65,6 @@ export default function DesignTemplate() {
   useEffect(() => {
     window.addEventListener('resize', handleResize);
   });
-  // Layout
-  const htmlLayout = template(weblayout);
 
   const [activeDevice, setActiveDevice] = useState(DESKTOP);
 
@@ -91,9 +80,6 @@ export default function DesignTemplate() {
 
   const [cardBackgroundColor, setCardBackgroundColor] = useState('#ffffff');
   const [imageVerticalAlignment, setImageVerticalAlignment] = useState('auto');
-
-  const [desktopStyles, setDesktopStyles] = useState(null);
-  const [mobileStyles, setMobileStyles] = useState(null);
 
   const onToggleDarkMode = () => setIsDark((currentMode) => !currentMode);
 
@@ -118,28 +104,6 @@ export default function DesignTemplate() {
     !placement ? 'placement' : null,
     !site_id ? 'site_id' : null
   ].filter((e) => e);
-
-  const updatingData = React.useMemo(() => {
-    return [
-      [DESKTOP, LIGHT],
-      [DESKTOP, DARK],
-      [MOBILE, LIGHT],
-      [MOBILE, DARK]
-    ]
-      .filter(([type, mode]) => state[type][mode].loadedKey.length > 0)
-      .filter(([type, mode]) => {
-        if (type === DESKTOP) {
-          return (
-            validate(...allDesktopValidateFuncs)(state[type][mode].data)
-              .length === 0
-          );
-        }
-        return (
-          validate(...allMobileValidateFuncs)(state[type][mode].data).length ===
-          0
-        );
-      });
-  }, [state]);
 
   useEffect(() => {
     if (!token || !placement || !site_id) {
@@ -340,188 +304,18 @@ export default function DesignTemplate() {
     }
   };
 
-  const {
-    baseStyle,
-    pavedAdHeadlineStyle,
-    imageContainerStyle,
-    textContainerStyle,
-    pavedAdSponsorContainer,
-    pavedAdSponsorLabelStyle,
-    pavedAdBodyStyle,
-    pavedAdCtaStyle
-  } = useSetStyles(cardBackgroundColor, embed, imageVerticalAlignment, adData);
-
-  useEffect(() => {
-    const deviceStyles = {
-      baseStyle,
-      pavedAdHeadlineStyle,
-      imageContainerStyle,
-      textContainerStyle,
-      pavedAdSponsorContainer,
-      pavedAdSponsorLabelStyle,
-      pavedAdBodyStyle,
-      pavedAdCtaStyle,
-      headlineAbove: adData.headline.above_image
-    };
-    if (activeDevice === DESKTOP) {
-      setDesktopStyles(deviceStyles);
-    } else {
-      setMobileStyles(deviceStyles);
-    }
-  }, [activeDevice, adData]);
-
-  // todo move to hook - useExportHtml
-  const exportHtml = (settings, deviceModeSettings) => {
-    let headLine;
-    if (settings.sponsorship_label.position === 'below_headline') {
-      headLine = getContainerRenderer('headline').exporters['web'](
-        {
-          content: {
-            AD_TITLE,
-            AD_SPONSORED
-          }
-        },
-        {
-          htmlId: {
-            headlineId: 'paved-ad-headline',
-            sponsoredId: 'paved-ad-sponsor'
-          }
-        }
-      );
-    } else {
-      headLine = getContainerRenderer('content').exporters['web'](AD_TITLE, {
-        htmlId: 'paved-ad-headline'
-      });
-    }
-    const body = getContainerRenderer('content').exporters['web'](AD_BODY, {
-      htmlId: 'paved-ad-body'
-    });
-
-    const imageData = getContainerRenderer('image').exporters['web']({
-      htmlId: 'paved-ad-img'
-    });
-
-    const cta = getContainerRenderer('content').exporters['web'](AD_CTA, {
-      htmlId: 'paved-ad-cta'
-    });
-
-    const sponsored = getContainerRenderer('sponsored').exporters['web'](
-      AD_SPONSORED,
-      {
-        htmlId: 'paved-ad-sponsor'
-      }
-    );
-
-    const adHtml = getContainerRenderer('body').exporters['web'](
-      settings.sponsorship_label.position === 'below_headline'
-        ? !deviceModeSettings.headlineAbove
-          ? imageData +
-            '<div class="text-container">' +
-            headLine +
-            body +
-            cta +
-            '</div>'
-          : imageData +
-            headLine +
-            '<div class="text-container">' +
-            body +
-            cta +
-            '</div>'
-        : !deviceModeSettings.headlineAbove
-        ? imageData +
-          '<div class="text-container">' +
-          headLine +
-          body +
-          cta +
-          '</div>' +
-          sponsored
-        : imageData +
-          headLine +
-          '<div class="text-container">' +
-          body +
-          cta +
-          '</div>' +
-          sponsored,
-      { htmlId: 'base' }
-    );
-
-    let inlineCSS =
-      exportCss(settings) +
-      '\n' +
-      `.sponsored{ ${ReactToCss(deviceModeSettings.pavedAdSponsorContainer)}}` +
-      '\n' +
-      `#paved-ad-sponsor{ ${ReactToCss(
-        deviceModeSettings.pavedAdSponsorLabelStyle
-      )}}` +
-      '\n' +
-      `#base{ ${ReactToCss(deviceModeSettings.baseStyle)}}` +
-      '\n' +
-      `.image-container{${ReactToCss(
-        deviceModeSettings.imageContainerStyle
-      )}}` +
-      '\n' +
-      `.text-container{${ReactToCss(deviceModeSettings.textContainerStyle)}}` +
-      '\n' +
-      `#paved-ad-headline{${ReactToCss(
-        deviceModeSettings.pavedAdHeadlineStyle
-      )}}` +
-      '\n' +
-      `#paved-ad-body{${ReactToCss(deviceModeSettings.pavedAdBodyStyle)}}` +
-      '\n' +
-      `#paved-ad-cta{${ReactToCss(deviceModeSettings.pavedAdCtaStyle)}}` +
-      '\n' +
-      settings?.custom_css;
-
-    const htmlPage = htmlLayout({
-      body: adHtml,
-      inlineCSS: inlineCSS,
-      linkStyleSheet: getGoogleFontsStyleSheet(selectedGoogleFonts)
-    });
-
-    return htmlPage;
-  };
-
-  // todo move to hook - usePageData
-  const saveTemplate = React.useCallback(() => {
-    return Promise.all(
-      updatingData.map(([device, lightMode]) => {
-        const payload = device === DESKTOP
-          ? exportHtml(state[device].light.data, desktopStyles)
-          : exportHtml(state[device].light.data, mobileStyles);
-
-        const myWindow = window.open("", "", "");
-        myWindow.document.write(payload);
-
-        return sendRequest(
-            `/sites/${site_id}/placements/${placement}/${device}/html?token=${token}${
-              lightMode === DARK ? '&color_scheme=dark' : ''
-            }`,
-            {
-              method: 'POST',
-              payload
-            }
-          )
-        }
-      )
-    );
-  }, [state, updatingData, desktopStyles, mobileStyles]);
-
-  // todo move to hook - usePageData
-  const saveSettings = React.useCallback(() => {
-    return Promise.all(
-      updatingData.map(([device, lightMode]) =>
-        sendRequest(
-          `/sites/${site_id}/placements/${placement}/${device}/settings?token=${token}${
-            lightMode === DARK ? '&color_scheme=dark' : ''
-          }`,
-          {
-            method: 'POST',
-            payload: state[device].light.data
-          }
-        )
-      )
-    );
-  }, [state, updatingData]);
+  const { saveTemplate, saveSettings, saveSize } = usePageData(
+    state,
+    cardBackgroundColor,
+    embed,
+    imageVerticalAlignment,
+    adData,
+    site_id,
+    placement,
+    token,
+    selectedGoogleFonts,
+    activeDevice
+  );
 
   const saveEventListener = React.useCallback(
     (event) => {
@@ -587,41 +381,11 @@ export default function DesignTemplate() {
     };
   }, [adData]);
 
-  // move to hook - usePageData
   const onRequestSave = async () => {
     let responses = [{ size_change: true }, { size_change: true }];
 
     try {
-      responses = await Promise.allSettled([
-        sendRequest(
-          `/sites/${site_id}/placements/${placement}/size_change?token=${token}`,
-          {
-            method: 'POST',
-            payload: {
-              mobile: {
-                width: state.mobile?.light?.data?.base?.width
-              },
-              desktop: {
-                width: state.desktop?.light?.data?.base?.width
-              }
-            }
-          }
-        ),
-        sendRequest(
-          `/sites/${site_id}/placements/${placement}/size_change?token=${token}&color_scheme=dark`,
-          {
-            method: 'POST',
-            payload: {
-              mobile: {
-                width: state.mobile?.dark?.data?.base?.width
-              },
-              desktop: {
-                width: state.desktop?.dark?.data?.base?.width
-              }
-            }
-          }
-        )
-      ]);
+      responses = await saveSize();
       warningTitle.current = WARNING_TITLE;
       warningBody.current = WARNING_BODY;
     } catch (error) {

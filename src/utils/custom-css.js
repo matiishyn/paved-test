@@ -111,6 +111,9 @@ export const exportCss = (adData) => {
 
   // Default
   let defaultStyle = `
+    * {
+    box-sizing: border-box;
+    }
     body {
       box-sizing: border-box;
       color: #212529;
