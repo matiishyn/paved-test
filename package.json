@@ -1,0 +1,71 @@
+{
+  "name": "ad-unit-builder",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "export NEXT_PUBLIC_MODE=PROD && next build",
+    "start": "next start",
+    "cz": "cz",
+    "formatter:fix": "prettier --write --ignore-unknown --config ./.prettierrc --ignore-path ./.prettierignore",
+    "log:pre-commit-message": "echo 'Prettier was run against the staged git files to improve code quality. The changes have been added to the original commit.'"
+  },
+  "dependencies": {
+    "bootstrap": "5.0.0-beta3",
+    "classnames": "^2.3.1",
+    "codemirror": "5.61.0",
+    "lodash": "4.17.21",
+    "next": "12.0.1",
+    "react": "17.0.2",
+    "react-codemirror2": "7.2.1",
+    "react-color": "2.19.3",
+    "react-dom": "17.0.2",
+    "react-dropzone": "11.3.2",
+    "react-easy-edit": "1.13.1",
+    "react-html-parser": "^2.0.2",
+    "react-modal": "^3.15.1",
+    "react-select": "4.3.0",
+    "react-style-object-to-css": "^1.1.2",
+    "react-switch": "6.0.0",
+    "react-tiny-popover": "^7.1.0",
+    "react-toast-notifications": "2.4.0",
+    "styled-jsx": "^4.0.1",
+    "wcag-color": "1.1.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "10.1.0",
+    "commitizen": "4.2.3",
+    "cz-customizable": "6.3.0",
+    "dotenv": "10.0.0",
+    "eslint": "7.1.0",
+    "eslint-config-airbnb-base": "14.1.0",
+    "eslint-config-prettier": "6.11.0",
+    "eslint-plugin-import": "2.20.2",
+    "eslint-plugin-jsx-a11y": "6.2.3",
+    "eslint-plugin-prettier": "3.1.3",
+    "eslint-plugin-react": "7.20.0",
+    "eslint-plugin-react-hooks": "4.0.4",
+    "husky": "4.3.0",
+    "lint-staged": "10.4.0",
+    "prettier": "2.4.1"
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-customizable"
+    },
+    "cz-customizable": {
+      "config": "./cz-config.js"
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "(git rev-parse -q --no-revs --verify MERGE_HEAD || lint-staged) && yarn log:pre-commit-message"
+    }
+  },
+  "lint-staged": {
+    "*.{md,html,css,json}": "yarn formatter:fix",
+    "*.js": [
+      "yarn formatter:fix"
+    ]
+  }
+}

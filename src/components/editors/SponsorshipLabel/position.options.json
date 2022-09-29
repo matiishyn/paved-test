@@ -1,0 +1,14 @@
+[
+  {
+    "value": "top",
+    "label": "Top"
+  },
+  {
+    "value": "below_headline",
+    "label": "Below Headline"
+  },
+  {
+    "value": "bottom",
+    "label": "Bottom"
+  }
+]

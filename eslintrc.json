@@ -1,0 +1,57 @@
+{
+  "parser": "babel-eslint",
+  "extends": [
+    "airbnb-base",
+    "plugin:react/recommended",
+    "plugin:prettier/recommended",
+    "plugin:import/typescript"
+  ],
+  "plugins": ["react", "react-hooks", "jsx-a11y"],
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true,
+      "experimentalObjectRestSpread": true
+    }
+  },
+  "env": {
+    "es6": true,
+    "node": true,
+    "browser": true
+  },
+  "settings": {
+    "react": {
+      "pragma": "React",
+      "version": "16.13.1"
+    }
+  },
+  "globals": {
+    "fbq": "readonly",
+    "branch": "readonly"
+  },
+  "rules": {
+    "no-plusplus": "off",
+    "max-classes-per-file": ["error", 2],
+    "class-methods-use-this": "off",
+    "react/prop-types": "off",
+    "import/prefer-default-export": "off",
+    "func-names": ["warn", "as-needed"],
+    "no-use-before-define": ["error", "nofunc"],
+    "quotes": ["error", "single", { "allowTemplateLiterals": true }],
+    "react-hooks/rules-of-hooks": "error",
+    "react-hooks/exhaustive-deps": "warn",
+    "jsx-a11y/alt-text": "error",
+    "jsx-a11y/accessible-emoji": "error",
+    "jsx-a11y/html-has-lang": "error",
+    "jsx-a11y/lang": "error",
+    "jsx-a11y/media-has-caption": "error",
+    "camelcase": [
+      "error",
+      {
+        "allow": ["utm_source", "utm_campaign", "utm_medium"],
+        "properties": "never"
+      }
+    ]
+  }
+}
